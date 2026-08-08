@@ -1,0 +1,4 @@
+scheme,n_batches,total_objective,total_penalty_cost,total_shipping_cost,total_solve_time_s
+1 batch of 16,1,1179428.302075715,1497.639593073593,33541.0,1.52
+2 batches of 8,2,1179428.302075715,1497.639593073593,33541.0,1.37
+4 batches of 4,4,1179428.3020757153,1497.639593073593,33541.0,1.53

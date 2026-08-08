@@ -1,0 +1,7 @@
+n_orders,n_dcs,n_case_keys,n_variables,solve_time_s,status
+2,6,56,188,0.07,Optimal
+3,6,123,399,0.13,Optimal
+5,6,276,878,0.25,Optimal
+8,7,478,1522,0.45,Optimal
+12,10,820,2628,0.89,Optimal
+16,10,1683,5273,1.41,Optimal

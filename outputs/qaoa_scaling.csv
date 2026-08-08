@@ -1,0 +1,8 @@
+n_orders,n_dcs,n_qubits,optimize_time_s,status
+2,2,4,0.27,ok
+2,3,6,0.26,ok
+3,3,9,0.28,ok
+3,4,12,0.46,ok
+5,3,15,2.03,ok
+3,5,15,3.43,ok
+4,4,16,0.0,Subset too large for simulator
