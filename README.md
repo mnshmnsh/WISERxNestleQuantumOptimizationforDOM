@@ -1,0 +1,53 @@
+# Nestle WISER DOM Optimization
+
+Repository: https://github.com/mnshmnsh/WISERxNestleQuantumOptimizationforDOM
+
+Distributed Order Management (DOM) divert-recommendation system: classical exact solver, quantum (QAOA) alternative, benchmark comparison, and scaling analysis.
+
+## Challenge
+
+Nestle's Distributed Order Management process decides, for each order a default distribution center cannot fully satisfy, whether to divert it to an alternate DC and if so which one. The assignment space grows combinatorially with order and DC count, constrained by shared inventory pools, dock capacity, a minimum-improvement threshold to justify a divert, and penalties on unmet demand.
+
+## Approach
+
+An exact MILP formulation (constraints 1-7: single-DC assignment, demand limits, pooled inventory with a 5-day lookahead, divert threshold, case-pick/pallet-pick decomposition, dock capacity, penalty activation) solved with PuLP/CBC, benchmarked against two classical baselines (static default assignment, order-level greedy heuristic) and a QAOA quantum alternative, scoped to focus orders - orders whose default DC cannot fully satisfy demand.
+
+## Methods and tools
+
+- **Classical baselines**: default (no diverts, static allocation to the order's default DC); greedy (one DC per focus order, chosen as the candidate DC maximizing total fillable cases across the order's SKUs - ignores inventory pooling, dock capacity, divert threshold, and penalties by design)
+- **Exact solver**: PuLP with CBC, full constraint set, LP relaxation for optimality-gap measurement
+- **Quantum**: QAOA (Qiskit), QUBO encoding of the one-DC-per-order constraint, multi-restart COBYLA parameter optimization, exact statevector simulation up to 15 qubits, noisy-simulator comparison (Qiskit Aer depolarizing/readout noise models)
+- **Data**: 25,193 order-SKU rows, 1,109 unique orders, 14 candidate DCs, real Nestle POC export
+
+## Results
+
+| Instance | Default | Greedy | MILP | QAOA |
+|---|---|---|---|---|
+| 5 focus orders, all DCs | 306,627 (fill 0.77) | 317,100 (fill 0.79) | 311,230 (fill 0.80) | - |
+| 5 focus orders x 3 DCs (15 qubits) | 125,370 (fill 0.34) | 311,538 (fill 0.78) | 311,164 (fill 0.80) | 301,688 (fill 0.78) |
+
+Focus orders are orders whose default DC cannot fully satisfy demand - 409 of the 1,109 unique orders in the dataset. Greedy and QAOA both report objective values in the same range as MILP, but neither is checked against the full constraint set (inventory pooling, dock capacity, divert threshold): validated directly, **QAOA's assignment is infeasible on all 5 tested configurations**. MILP has the highest fill rate of any tested strategy while being the only one enforcing every constraint during search.
+
+MILP variable count grows from 188 to 5,273 across 2 to 16 focus orders with solve time under 3 seconds throughout (120-second limit). QAOA is capped at 15 qubits by exact-simulation cost; solution quality after greedy repair holds at 0% gap across all tested noise levels, while the underlying sampling signal (top-bitstring probability) drops from 18.7% to 0.6% from noiseless to high-noise conditions.
+
+## Limitations and next steps
+
+- Greedy and QAOA objective values are not checked against the full constraint set and should not be read as directly comparable to MILP's; QAOA's assignment is confirmed infeasible on every tested configuration.
+- Case-pick/pallet-pick capacity ceilings are not enforced by default: the source data has historical utilization, not a stated capacity limit.
+- MILP is untested at full order volume (~300+ focus orders/day); a commercial solver or order-batching by region/SKU-family extends the tractable range.
+- QAOA's QUBO does not encode inventory pooling, dock capacity, or the divert threshold; encoding any one of these costs 4-7 additional qubits per constraint (slack-variable binary expansion), which is demonstrated directly in the notebook and is the reason the base solver omits them at this qubit budget.
+- QAOA results are simulator-only; no hardware run was performed.
+
+## Repository contents
+
+- `DOM_Full_Notebook.ipynb` - complete pipeline: data acquisition, preprocessing, baselines, MILP, QAOA, benchmark comparison, scaling analysis, LP relaxation, QUBO constraint-cost demonstration, noisy-simulator comparison, batching study, planner visualization
+- `TECHNICAL_REPORT.docx` - business and technical summary, formulation, trade-offs, findings
+- `PLANNER_VIEW.docx` - one-page divert-recommendation summary in business language
+- `SLIDES.pptx` - presentation deck with speaker notes
+
+## Team
+
+| Name | Contribution |
+|---|---|
+| Hisham Mansour | Modeling, MILP and QAOA implementation, benchmarking, scaling and noise analysis |
+| Yasir Mansour | Modeling, MILP and QAOA implementation, benchmarking, scaling and noise analysis |
